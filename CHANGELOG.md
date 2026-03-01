@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [Version 0.2.2] - 2026-03-01
+
+### Fixed
+#### Dark Theme Header Fix
+- Fixed header showing white background in dark mode
+- Added `theme` parameter to `render_header()` function
+- Header now uses darker gradient in dark mode (`#1A365D` to `#4299E1`)
+- Added `.talentscout-header` CSS class for better targeting
+- Updated dark mode CSS with proper header styling
+
+#### Dark Theme Sentiment Badges Fix
+- Fixed sentiment badges being unreadable in dark mode (dark text on dark background)
+- Added `theme` parameter to `render_sentiment_badge_realtime()` function
+- In dark mode, badges now use inverted colors:
+  - **Confident**: Dark green background (`#276749`) with light text (`#C6F6D5`)
+  - **Moderate**: Dark yellow/brown background (`#975A16`) with light text (`#FEFCBF`)
+  - **Uncertain**: Dark red background (`#C53030`) with light text (`#FED7D7`)
+
+### Changed
+- `render_header()` now accepts `theme` parameter (default: "light")
+- `render_sentiment_badge_realtime()` now accepts `theme` parameter (default: "light")
+- Updated `src/app.py` to pass theme to header and sentiment badge functions
+- Improved dark mode CSS specificity for header elements
+
+---
+
 ## [Version 0.2.1] - 2026-03-01
 
 ### Fixed
@@ -204,24 +230,25 @@ LogConfig(
 
 ## Version Comparison
 
-| Feature | v0.1 | v0.2 | v0.2.1 |
-|---------|------|------|--------|
-| Dual LLM Support | ✅ | ✅ | ✅ |
-| State Machine | ✅ | ✅ | ✅ |
-| 7-Field Collection | ✅ | ✅ | ✅ |
-| Technical Questions | ✅ | ✅ | ✅ |
-| Fallback Handling | ✅ | ✅ | ✅ |
-| Multilingual | ❌ | ✅ (7 languages) | ✅ (7 languages) |
-| Sentiment Display | ❌ | ✅ (3 modes) | ✅ (3 modes) |
-| Personalization | ❌ | ✅ (4 types) | ✅ (4 types) |
-| Dark Mode | ❌ | ✅ (glitchy) | ✅ (fixed) |
-| API Usage Stats | ❌ | ✅ | ✅ |
-| Response Caching | ❌ | ✅ | ✅ |
-| Streaming | ❌ | ✅ | ✅ |
-| Animations | ❌ | ✅ | ✅ |
-| Comprehensive Logging | ❌ | ❌ | ✅ |
-| PII Anonymization | ❌ | ❌ | ✅ |
-| Error Tracking | ❌ | ❌ | ✅ |
+| Feature | v0.1 | v0.2 | v0.2.1 | v0.2.2 |
+|---------|------|------|--------|--------|
+| Dual LLM Support | ✅ | ✅ | ✅ | ✅ |
+| State Machine | ✅ | ✅ | ✅ | ✅ |
+| 7-Field Collection | ✅ | ✅ | ✅ | ✅ |
+| Technical Questions | ✅ | ✅ | ✅ | ✅ |
+| Fallback Handling | ✅ | ✅ | ✅ | ✅ |
+| Multilingual | ❌ | ✅ (7 languages) | ✅ (7 languages) | ✅ (7 languages) |
+| Sentiment Display | ❌ | ✅ (3 modes) | ✅ (3 modes) | ✅ (3 modes) |
+| Personalization | ❌ | ✅ (4 types) | ✅ (4 types) | ✅ (4 types) |
+| Dark Mode | ❌ | ✅ (glitchy) | ✅ (fixed) | ✅ (fully fixed) |
+| API Usage Stats | ❌ | ✅ | ✅ | ✅ |
+| Response Caching | ❌ | ✅ | ✅ | ✅ |
+| Streaming | ❌ | ✅ | ✅ | ✅ |
+| Animations | ❌ | ✅ | ✅ | ✅ |
+| Comprehensive Logging | ❌ | ❌ | ✅ | ✅ |
+| PII Anonymization | ❌ | ❌ | ✅ | ✅ |
+| Error Tracking | ❌ | ❌ | ✅ | ✅ |
+| Theme-aware UI Components | ❌ | ❌ | ❌ | ✅ |
 
 ---
 

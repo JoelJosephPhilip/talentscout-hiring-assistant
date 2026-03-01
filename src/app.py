@@ -108,7 +108,7 @@ def main():
         st.markdown(get_custom_css(), unsafe_allow_html=True)
     
     # Render header
-    render_header(language)
+    render_header(language, theme)
     
     # Sidebar
     with st.sidebar:
@@ -231,12 +231,12 @@ def main():
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
                 
-                # Show sentiment badge for user messages (after first few)
-                if message["role"] == "user" and i > 1 and i < len(st.session_state.messages) - 1:
-                    # Check if we have sentiment data for this message
-                    if i // 2 < len(st.session_state.sentiment_history):
-                        sentiment_data = st.session_state.sentiment_history[i // 2]
-                        render_sentiment_badge_realtime(sentiment_data)
+        # Show sentiment badge for user messages (after first few)
+        if message["role"] == "user" and i > 1 and i < len(st.session_state.messages) - 1:
+            # Check if we have sentiment data for this message
+            if i // 2 < len(st.session_state.sentiment_history):
+                sentiment_data = st.session_state.sentiment_history[i // 2]
+                render_sentiment_badge_realtime(sentiment_data, theme)
         
         # Check if conversation ended
         current_state = st.session_state.state_manager.get_current_state()
@@ -310,9 +310,9 @@ def main():
                 if st.session_state.llm and prompt:
                     try:
                         analyzer = SentimentAnalyzer(st.session_state.llm)
-                        sentiment_data = analyzer.analyze(prompt)
-                        st.session_state.sentiment_history.append(sentiment_data)
-                        render_sentiment_badge_realtime(sentiment_data)
+                sentiment_data = analyzer.analyze(prompt)
+                st.session_state.sentiment_history.append(sentiment_data)
+                render_sentiment_badge_realtime(sentiment_data, theme)
                     except Exception as e:
                         st.session_state.logger.log_error(
                             error_type="SentimentAnalysisError",

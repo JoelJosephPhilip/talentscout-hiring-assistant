@@ -3,30 +3,37 @@ import time
 from typing import Dict, List, Optional
 
 
-def render_header(language: str = "en"):
+def render_header(language: str = "en", theme: str = "light"):
     """Render the chat header with branding"""
     from src.i18n import get_translation
-    
+
     title = get_translation("welcome_title", language)
     subtitle = get_translation("welcome_message", language)
-    
+
+    if theme == "dark":
+        bg_gradient = "linear-gradient(135deg, #1A365D 0%, #4299E1 100%)"
+        box_shadow = "0 4px 6px -1px rgba(255, 255, 255, 0.1)"
+    else:
+        bg_gradient = "linear-gradient(135deg, #1A365D 0%, #2B6CB0 100%)"
+        box_shadow = "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+
     st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, #1A365D 0%, #2B6CB0 100%);
-        color: white;
-        padding: 1.5rem 2rem;
-        border-radius: 12px;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    ">
-        <h1 style="font-size: 1.75rem; font-weight: 700; margin: 0;">
-            🎯 TalentScout Hiring Assistant
-        </h1>
-        <p style="font-size: 0.95rem; opacity: 0.9; margin: 0.5rem 0 0 0;">
-            {subtitle}
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+<div class="talentscout-header" style="
+background: {bg_gradient};
+color: white;
+padding: 1.5rem 2rem;
+border-radius: 12px;
+margin-bottom: 1.5rem;
+box-shadow: {box_shadow};
+">
+<h1 style="font-size: 1.75rem; font-weight: 700; margin: 0; color: white;">
+🎯 TalentScout Hiring Assistant
+</h1>
+<p style="font-size: 0.95rem; opacity: 0.9; margin: 0.5rem 0 0 0; color: white;">
+{subtitle}
+</p>
+</div>
+""", unsafe_allow_html=True)
 
 
 def render_progress(current_phase: str, phases: list, language: str = "en"):
@@ -118,48 +125,68 @@ def render_llm_provider_badge(provider: str, is_fallback: bool = False):
     """, unsafe_allow_html=True)
 
 
-def render_sentiment_badge_realtime(sentiment_data: dict):
+def render_sentiment_badge_realtime(sentiment_data: dict, theme: str = "light"):
     """Render sentiment badge with animation after each candidate response"""
     score = sentiment_data.get("confidence_score", 0.5)
     sentiment = sentiment_data.get("sentiment", "neutral")
     enthusiasm = sentiment_data.get("enthusiasm", "medium")
-    
-    if score >= 0.7:
-        emoji = "😊"
-        label = "Confident"
-        bg_color = "#C6F6D5"
-        text_color = "#276749"
-        animation = "pulse"
-    elif score >= 0.4:
-        emoji = "😐"
-        label = "Moderate"
-        bg_color = "#FEFCBF"
-        text_color = "#975A16"
-        animation = "fadeIn"
+
+    if theme == "dark":
+        if score >= 0.7:
+            emoji = "😊"
+            label = "Confident"
+            bg_color = "#276749"
+            text_color = "#C6F6D5"
+            animation = "pulse"
+        elif score >= 0.4:
+            emoji = "😐"
+            label = "Moderate"
+            bg_color = "#975A16"
+            text_color = "#FEFCBF"
+            animation = "fadeIn"
+        else:
+            emoji = "😟"
+            label = "Uncertain"
+            bg_color = "#C53030"
+            text_color = "#FED7D7"
+            animation = "fadeIn"
     else:
-        emoji = "😟"
-        label = "Uncertain"
-        bg_color = "#FED7D7"
-        text_color = "#C53030"
-        animation = "fadeIn"
-    
+        if score >= 0.7:
+            emoji = "😊"
+            label = "Confident"
+            bg_color = "#C6F6D5"
+            text_color = "#276749"
+            animation = "pulse"
+        elif score >= 0.4:
+            emoji = "😐"
+            label = "Moderate"
+            bg_color = "#FEFCBF"
+            text_color = "#975A16"
+            animation = "fadeIn"
+        else:
+            emoji = "😟"
+            label = "Uncertain"
+            bg_color = "#FED7D7"
+            text_color = "#C53030"
+            animation = "fadeIn"
+
     st.markdown(f"""
-    <div class="sentiment-badge sentiment-{animation}" style="
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        background-color: {bg_color};
-        color: {text_color};
-        margin-top: 0.5rem;
-        margin-bottom: 1rem;
-    ">
-        {emoji} {label} <span style="opacity: 0.7; font-size: 0.8rem;">(Score: {score:.2f})</span>
-    </div>
-    """, unsafe_allow_html=True)
+<div class="sentiment-badge sentiment-{animation}" style="
+display: inline-flex;
+align-items: center;
+gap: 0.5rem;
+padding: 0.5rem 1rem;
+border-radius: 20px;
+font-size: 0.9rem;
+font-weight: 500;
+background-color: {bg_color};
+color: {text_color};
+margin-top: 0.5rem;
+margin-bottom: 1rem;
+">
+{emoji} {label} <span style="opacity: 0.8; font-size: 0.8rem;">(Score: {score:.2f})</span>
+</div>
+""", unsafe_allow_html=True)
 
 
 def render_sentiment_sidebar(sentiment_history: list, language: str = "en"):
@@ -549,10 +576,18 @@ def get_dark_mode_css():
     background-color: #1A202C !important;
 }
 
-/* Header gradient fix for dark mode */
-div[style*="background: linear-gradient"] {
-    background: linear-gradient(135deg, #1A365D 0%, #2B6CB0 100%) !important;
-}
+    /* Header gradient fix for dark mode */
+    .talentscout-header {
+        background: linear-gradient(135deg, #1A365D 0%, #4299E1 100%) !important;
+    }
+    
+    .talentscout-header * {
+        color: white !important;
+    }
+    
+    div[style*="background: linear-gradient"] {
+        background: linear-gradient(135deg, #1A365D 0%, #4299E1 100%) !important;
+    }
 
 /* Progress container */
 .progress-container,
