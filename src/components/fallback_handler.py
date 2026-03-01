@@ -50,18 +50,16 @@ class FallbackHandler:
         """
         user_lower = user_input.lower().strip()
 
-        # Check for exit keywords - use exact match for short inputs
-        if len(user_lower) <= 5:
-            # For very short inputs, check exact match
-            exact_exit_words = ["bye", "quit", "exit", "stop", "end", "cancel"]
-            if user_lower in exact_exit_words:
-                return FallbackType.EXIT, self._generate_exit_response()
-        else:
-            # For longer inputs, check if exit phrase is contained
-            exit_phrases = ["goodbye", "no thanks", "not interested", "nevermind", 
-                           "no thank you", "not now", "maybe later"]
-            if any(phrase in user_lower for phrase in exit_phrases):
-                return FallbackType.EXIT, self._generate_exit_response()
+        # Check for exit keywords
+        exact_exit_words = ["bye", "quit", "exit", "stop", "end", "cancel"]
+        exit_phrases = ["goodbye", "no thanks", "not interested", "nevermind",
+                       "no thank you", "not now", "maybe later", "i want to exit",
+                       "stop this", "cancel this", "please exit"]
+        
+        if user_lower in exact_exit_words:
+            return FallbackType.EXIT, self._generate_exit_response()
+        if any(phrase in user_lower for phrase in exit_phrases):
+            return FallbackType.EXIT, self._generate_exit_response()
 
         # Check for hostile content
         if any(keyword in user_lower for keyword in self.HOSTILE_KEYWORDS):
