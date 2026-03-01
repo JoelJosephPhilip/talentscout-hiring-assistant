@@ -77,3 +77,10 @@ Thumbs.db
 *.log
 candidate_data/
 nul
+
+# Logs directory (generated at runtime)
+logs/
+
+# Temporary files
+*.tmp
+*.temp
