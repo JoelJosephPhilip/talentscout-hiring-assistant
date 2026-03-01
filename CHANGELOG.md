@@ -4,6 +4,93 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [Version 0.2.1] - 2026-03-01
+
+### Fixed
+#### Dark Theme Optimization
+- Fixed text contrast issues in dark mode (text was unreadable on dark backgrounds)
+- Fixed header gradient colors to work properly in dark mode
+- Fixed progress container background colors
+- Fixed chat input textarea styling in dark mode
+- Fixed chat message bubble backgrounds and text colors
+- Fixed sidebar styling (background, borders, text colors)
+- Fixed metric cards styling in dark mode
+- Fixed radio buttons and selectbox styling
+- Fixed expanders styling in dark mode
+- Fixed info/warning/success boxes styling
+- Fixed sentiment badges and LLM provider badges in dark mode
+- Added comprehensive CSS selectors targeting Streamlit's data-testid attributes
+- Ensured all text elements have proper contrast (#E2E8F0 or lighter)
+
+### Added
+#### Comprehensive Logging System
+- `src/utils/logger.py` - Full-featured logging module
+- `SessionLogger` class for tracking complete conversation sessions
+- `LogManager` class for managing multiple sessions and analysis
+- `LogConfig` dataclass for configurable logging behavior
+- Configurable PII handling (anonymized by default for GDPR compliance)
+
+#### Log Structure
+```
+logs/
+├── sessions/          # Individual session logs (JSON)
+│   └── session_20260301_143022_a1b2c3.json
+├── daily/             # Daily aggregated summaries
+│   └── 2026-03-01.json
+└── errors/            # Error-specific logs
+    └── errors_2026-03-01.json
+```
+
+#### Session Log Contents
+Each session log captures:
+- **Session metadata**: ID, timestamps, configuration
+- **Candidate info**: Name, email, position, experience (anonymized)
+- **Conversation turns**: Full dialogue with:
+  - User input and LLM response
+  - Phase information
+  - Response time (ms)
+  - Token usage
+  - Sentiment analysis per turn
+  - Prompt template used
+  - Fallback triggers
+  - Cache hit status
+- **UI events**: Theme changes, language changes, session start/end
+- **Errors**: Type, message, stack trace, context
+- **Metrics**: Duration, turns, avg response time, sentiment trend, cache hits
+- **Assessment**: Overall sentiment, confidence score, uncertainty phrases
+
+#### Log Use Cases
+| Goal | How to Use Logs |
+|------|-----------------|
+| Debug UI issues | Check `ui_events` for theme/language changes |
+| Fix conversation bugs | Analyze conversation turns by phase |
+| Improve prompts | Review `prompt_template_used` + responses |
+| Train models | Extract conversation patterns from sessions |
+| Analyze sentiment trends | Use `sentiment_trend` array |
+| Performance tuning | Check `response_time_ms`, `cache_hits` |
+| Error tracking | Review `errors/` directory |
+
+#### Configuration
+Logging is configurable via `LogConfig`:
+```python
+LogConfig(
+    include_pii=False,        # Anonymize PII (GDPR compliant)
+    log_to_console=True,      # Print logs to console
+    log_llm_responses=True,   # Log LLM responses
+    log_sentiment=True,       # Log sentiment analysis
+    log_ui_events=True,       # Log UI interactions
+    log_performance=True      # Log performance metrics
+)
+```
+
+### Changed
+- Updated `src/app.py` to integrate logging throughout the conversation flow
+- Enhanced error handling with structured error logging
+- Added logging for UI events (theme change, language change, session start/end)
+- Updated imports to include new logging utilities
+
+---
+
 ## [Version 0.2] - 2026-03-01
 
 ### Added
@@ -117,21 +204,24 @@ All notable changes to this project will be documented in this file.
 
 ## Version Comparison
 
-| Feature | v0.1 | v0.2 |
-|---------|------|------|
-| Dual LLM Support | ✅ | ✅ |
-| State Machine | ✅ | ✅ |
-| 7-Field Collection | ✅ | ✅ |
-| Technical Questions | ✅ | ✅ |
-| Fallback Handling | ✅ | ✅ |
-| Multilingual | ❌ | ✅ (7 languages) |
-| Sentiment Display | ❌ | ✅ (3 modes) |
-| Personalization | ❌ | ✅ (4 types) |
-| Dark Mode | ❌ | ✅ |
-| API Usage Stats | ❌ | ✅ |
-| Response Caching | ❌ | ✅ |
-| Streaming | ❌ | ✅ |
-| Animations | ❌ | ✅ |
+| Feature | v0.1 | v0.2 | v0.2.1 |
+|---------|------|------|--------|
+| Dual LLM Support | ✅ | ✅ | ✅ |
+| State Machine | ✅ | ✅ | ✅ |
+| 7-Field Collection | ✅ | ✅ | ✅ |
+| Technical Questions | ✅ | ✅ | ✅ |
+| Fallback Handling | ✅ | ✅ | ✅ |
+| Multilingual | ❌ | ✅ (7 languages) | ✅ (7 languages) |
+| Sentiment Display | ❌ | ✅ (3 modes) | ✅ (3 modes) |
+| Personalization | ❌ | ✅ (4 types) | ✅ (4 types) |
+| Dark Mode | ❌ | ✅ (glitchy) | ✅ (fixed) |
+| API Usage Stats | ❌ | ✅ | ✅ |
+| Response Caching | ❌ | ✅ | ✅ |
+| Streaming | ❌ | ✅ | ✅ |
+| Animations | ❌ | ✅ | ✅ |
+| Comprehensive Logging | ❌ | ❌ | ✅ |
+| PII Anonymization | ❌ | ❌ | ✅ |
+| Error Tracking | ❌ | ❌ | ✅ |
 
 ---
 

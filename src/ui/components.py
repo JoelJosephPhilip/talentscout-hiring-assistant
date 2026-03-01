@@ -530,51 +530,251 @@ def get_custom_css():
 
 
 def get_dark_mode_css():
-    """Return dark mode CSS styles"""
+    """Return dark mode CSS styles - comprehensive fix for all UI elements"""
     return """
-    <style>
-    .stApp {
-        background-color: #1A202C;
-        color: #E2E8F0;
-    }
-    
-    .stChatMessage {
-        background-color: #2D3748 !important;
-        border-color: #4A5568 !important;
-        color: #E2E8F0 !important;
-    }
-    
-    [data-testid="stSidebar"] {
-        background-color: #1A202C !important;
-        border-right-color: #4A5568 !important;
-    }
-    
-    .stButton button {
-        background-color: #4299E1;
-        color: white;
-    }
-    
-    .stButton button:hover {
-        background-color: #2B6CB0;
-    }
-    
-    .stChatInput textarea {
-        background-color: #2D3748;
-        color: #E2E8F0;
-        border-color: #4A5568;
-    }
-    
-    [data-testid="stMetric"] {
-        background-color: #2D3748;
-        border-color: #4A5568;
-    }
-    
-    .stMarkdown, .stCaption {
-        color: #E2E8F0 !important;
-    }
-    
-    div[data-testid="stVerticalBlock"] > div {
-        background-color: transparent !important;
-    }
-    </style>
-    """
+<style>
+/* Root app background */
+.stApp, .main, [data-testid="stAppViewContainer"] {
+    background-color: #1A202C !important;
+}
+
+/* Global text color */
+.stApp, .stApp *:not(.stChatMessage):not(input):not(textarea) {
+    color: #E2E8F0 !important;
+}
+
+/* Main content area */
+[data-testid="stMainBlockContainer"], 
+[data-testid="stMain"] {
+    background-color: #1A202C !important;
+}
+
+/* Header gradient fix for dark mode */
+div[style*="background: linear-gradient"] {
+    background: linear-gradient(135deg, #1A365D 0%, #2B6CB0 100%) !important;
+}
+
+/* Progress container */
+.progress-container,
+div[style*="background-color: #F7FAFC"] {
+    background-color: #2D3748 !important;
+    border-color: #4A5568 !important;
+}
+
+.progress-container * {
+    color: #E2E8F0 !important;
+}
+
+/* Chat input */
+.stChatInput textarea,
+[data-testid="stChatInput"] textarea {
+    background-color: #2D3748 !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #4A5568 !important;
+}
+
+.stChatInput textarea::placeholder,
+[data-testid="stChatInput"] textarea::placeholder {
+    color: #A0AEC0 !important;
+}
+
+/* Chat messages - assistant */
+.stChatMessage,
+[data-testid="stChatMessage"] {
+    background-color: #2D3748 !important;
+    border: 1px solid #4A5568 !important;
+    color: #E2E8F0 !important;
+}
+
+.stChatMessage p,
+.stChatMessage span,
+[data-testid="stChatMessage"] p,
+[data-testid="stChatMessage"] span {
+    color: #E2E8F0 !important;
+}
+
+/* Chat avatar styling */
+.stChatMessage [data-testid="stChatMessageAvatar"],
+[data-testid="stChatMessageAvatar"] {
+    background-color: #4A5568 !important;
+}
+
+/* User message styling */
+.stChatMessage[data-testid="user"],
+[data-testid="stChatMessage"]:has(.stChatMessageContent) {
+    background-color: #374151 !important;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"],
+[data-testid="stSidebarNav"],
+[data-testid="stSidebarContent"] {
+    background-color: #1A202C !important;
+    border-right: 1px solid #4A5568 !important;
+}
+
+[data-testid="stSidebar"] * {
+    color: #E2E8F0 !important;
+}
+
+[data-testid="stSidebar"] .element-container,
+[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+    background-color: transparent !important;
+}
+
+/* Sidebar labels and captions */
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] .stCaption,
+[data-testid="stSidebar"] .stMarkdown,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span {
+    color: #E2E8F0 !important;
+}
+
+/* Sidebar info boxes */
+[data-testid="stSidebar"] [data-testid="stInfo"],
+[data-testid="stSidebar"] .stAlert {
+    background-color: #2D3748 !important;
+    border-color: #4A5568 !important;
+}
+
+/* Metric cards */
+[data-testid="stMetric"],
+.stMetric {
+    background-color: #2D3748 !important;
+    border: 1px solid #4A5568 !important;
+    border-radius: 8px;
+    padding: 0.75rem;
+}
+
+[data-testid="stMetric"] label,
+[data-testid="stMetric"] [data-testid="stMetricLabel"],
+.stMetric label {
+    color: #A0AEC0 !important;
+}
+
+[data-testid="stMetric"] [data-testid="stMetricValue"],
+.stMetric [data-testid="stMetricValue"] {
+    color: #E2E8F0 !important;
+}
+
+/* Buttons */
+.stButton button,
+button[kind="primary"],
+button[kind="secondary"] {
+    background-color: #4299E1 !important;
+    color: white !important;
+    border: none !important;
+}
+
+.stButton button:hover {
+    background-color: #2B6CB0 !important;
+    color: white !important;
+}
+
+/* Radio buttons */
+.stRadio > div,
+[data-testid="stRadio"] > div {
+    background-color: transparent !important;
+}
+
+.stRadio label,
+[data-testid="stRadio"] label {
+    color: #E2E8F0 !important;
+}
+
+/* Selectbox */
+.stSelectbox > div > div,
+[data-testid="stSelectbox"] > div > div {
+    background-color: #2D3748 !important;
+    border-color: #4A5568 !important;
+    color: #E2E8F0 !important;
+}
+
+/* Expanders */
+.streamlit-expanderHeader,
+[data-testid="stExpander"] summary {
+    background-color: #2D3748 !important;
+    color: #E2E8F0 !important;
+    border: 1px solid #4A5568 !important;
+}
+
+[data-testid="stExpander"] {
+    background-color: #1A202C !important;
+}
+
+/* Info/Warning/Success boxes */
+[data-testid="stInfo"], .stAlert {
+    background-color: #2D3748 !important;
+    border-color: #4A5568 !important;
+}
+
+[data-testid="stInfo"] *, .stAlert * {
+    color: #E2E8F0 !important;
+}
+
+/* Typing indicator */
+.typing-container {
+    background: linear-gradient(135deg, #2D3748 0%, #374151 100%) !important;
+}
+
+.typing-container * {
+    color: #E2E8F0 !important;
+}
+
+/* Sentiment badges in dark mode */
+.sentiment-badge {
+    color: #E2E8F0 !important;
+}
+
+/* LLM provider badge */
+div[style*="background-color: #EBF8FF"],
+div[style*="background-color: #F0FFF4"] {
+    background-color: #2D3748 !important;
+    border-color: #4A5568 !important;
+}
+
+div[style*="background-color: #EBF8FF"] *,
+div[style*="background-color: #F0FFF4"] * {
+    color: #E2E8F0 !important;
+}
+
+/* Language selector and other dropdown content */
+.stSelectbox div[role="listbox"],
+[data-baseweb="select"] > div {
+    background-color: #2D3748 !important;
+    border-color: #4A5568 !important;
+}
+
+[data-baseweb="select"] * {
+    color: #E2E8F0 !important;
+}
+
+/* Markdown content */
+.stMarkdown, .stCaption {
+    color: #E2E8F0 !important;
+}
+
+/* Div elements with light backgrounds */
+div[data-testid="stVerticalBlock"] > div[style*="background"] {
+    background-color: transparent !important;
+}
+
+/* Welcome screen content */
+.stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+    color: #E2E8F0 !important;
+}
+
+/* Force all text in main area */
+.main .block-container *:not(input):not(textarea):not(button) {
+    color: #E2E8F0;
+}
+
+/* Fix for chat message content */
+[data-testid="stChatMessage"] div,
+[data-testid="stChatMessage"] p,
+[data-testid="stChatMessage"] span:not(.stChatMessageAvatar) {
+    color: #E2E8F0 !important;
+}
+</style>
+"""

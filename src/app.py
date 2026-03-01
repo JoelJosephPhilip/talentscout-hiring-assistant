@@ -23,45 +23,56 @@ from src.ui.components import (
     render_sentiment_badge_realtime, get_custom_css, get_dark_mode_css
 )
 from src.i18n import get_translation, SUPPORTED_LANGUAGES
+from src.utils import SessionLogger, LogConfig
 
 
 def initialize_session_state():
     """Initialize session state variables"""
     if "state_manager" not in st.session_state:
         st.session_state.state_manager = StateManager()
-    
+
     if "llm" not in st.session_state:
         st.session_state.llm = None
-    
+
     if "llm_provider" not in st.session_state:
         st.session_state.llm_provider = "auto"
-    
+
     if "phase_controller" not in st.session_state:
         st.session_state.phase_controller = None
-    
+
     if "messages" not in st.session_state:
         st.session_state.messages = []
-    
+
     if "started" not in st.session_state:
         st.session_state.started = False
-    
+
     if "llm_error" not in st.session_state:
         st.session_state.llm_error = None
-    
+
     if "language" not in st.session_state:
         st.session_state.language = "en"
-    
+
     if "theme" not in st.session_state:
         st.session_state.theme = "light"
-    
+
     if "usage_tracker" not in st.session_state:
         st.session_state.usage_tracker = UsageTracker()
-    
+
     if "sentiment_history" not in st.session_state:
         st.session_state.sentiment_history = []
-    
+
     if "cache_hits" not in st.session_state:
         st.session_state.cache_hits = 0
+
+    if "logger" not in st.session_state:
+        log_config = LogConfig(
+            include_pii=False,
+            log_to_console=True,
+            log_llm_responses=True,
+            log_sentiment=True,
+            log_ui_events=True
+        )
+        st.session_state.logger = SessionLogger(log_config)
 
 
 def initialize_llm(preferred: str = "auto"):
@@ -104,12 +115,14 @@ def main():
         # Language selector
         selected_language = render_language_selector(language)
         if selected_language != language:
+            st.session_state.logger.log_ui_event("language_change", {"from": language, "to": selected_language})
             st.session_state.language = selected_language
             st.rerun()
-        
+
         # Theme toggle
         selected_theme = render_theme_toggle()
         if selected_theme != theme:
+            st.session_state.logger.log_ui_event("theme_change", {"from": theme, "to": selected_theme})
             st.session_state.theme = selected_theme
             st.rerun()
         
@@ -163,30 +176,40 @@ def main():
         with col2:
             start_button = st.button(get_translation('start_button', language), use_container_width=True)
             
-            if start_button:
-                # Initialize LLM
-                llm, provider_name, is_fallback, error = initialize_llm(preferred_provider)
-                
-                if error:
-                    st.error(f"⚠️ {error}")
-                    st.info(get_translation('error_no_llm', language))
-                else:
-                    st.session_state.llm = llm
-                    st.session_state.llm_provider = provider_name
-                    st.session_state.is_fallback = is_fallback
-                    st.session_state.state_manager.set_llm_provider(provider_name)
-                    
-                    # Initialize phase controller
-                    st.session_state.phase_controller = PhaseController(
-                        llm=llm,
-                        state_manager=st.session_state.state_manager
-                    )
-                    
-                    # Generate greeting with personalization
-                    greeting = st.session_state.phase_controller._start_greeting()
-                    st.session_state.messages.append({"role": "assistant", "content": greeting})
-                    st.session_state.started = True
-                    st.rerun()
+        if start_button:
+            # Initialize LLM
+            llm, provider_name, is_fallback, error = initialize_llm(preferred_provider)
+
+            if error:
+                st.error(f"⚠️ {error}")
+                st.info(get_translation('error_no_llm', language))
+                st.session_state.logger.log_error(
+                    error_type="LLMInitError",
+                    error_message=error,
+                    context={"preferred_provider": preferred_provider}
+                )
+            else:
+                st.session_state.llm = llm
+                st.session_state.llm_provider = provider_name
+                st.session_state.is_fallback = is_fallback
+                st.session_state.state_manager.set_llm_provider(provider_name)
+
+                # Log configuration
+                st.session_state.logger.set_config("llm_provider", provider_name)
+                st.session_state.logger.set_config("model", "gpt-4o" if "GPT" in provider_name else "llama3.2")
+
+                # Initialize phase controller
+                st.session_state.phase_controller = PhaseController(
+                    llm=llm,
+                    state_manager=st.session_state.state_manager
+                )
+
+                # Generate greeting with personalization
+                greeting = st.session_state.phase_controller._start_greeting()
+                st.session_state.messages.append({"role": "assistant", "content": greeting})
+                st.session_state.started = True
+                st.session_state.logger.log_ui_event("session_start", {"provider": provider_name})
+                st.rerun()
     
     else:
         # Show LLM provider badge
@@ -220,77 +243,117 @@ def main():
         if current_state == ConversationState.EXIT:
             st.markdown("---")
             st.success(get_translation('screening_complete', language))
-            
+
             # Final sentiment report
             if st.session_state.sentiment_history:
                 analyzer = SentimentAnalyzer(st.session_state.llm)
                 responses = [
-                    st.session_state.messages[i]["content"] 
+                    st.session_state.messages[i]["content"]
                     for i in range(1, len(st.session_state.messages), 2)
                     if i < len(st.session_state.messages)
                 ]
                 final_sentiment = analyzer.get_overall_assessment(responses)
                 render_final_sentiment_report(final_sentiment, language)
-            
+                
+                # Update logger assessment
+                st.session_state.logger.update_assessment("overall_sentiment", final_sentiment.get("overall_sentiment"))
+                st.session_state.logger.update_assessment("confidence_score", final_sentiment.get("overall_confidence"))
+                st.session_state.logger.update_assessment("uncertainty_phrases", final_sentiment.get("uncertainty_phrases", []))
+
             st.info(get_translation('next_steps', language))
-            
+
             if st.button(get_translation('new_session', language)):
+                # Finalize and save session log
+                session_file = st.session_state.logger.finalize_session()
+                st.session_state.logger.log_ui_event("session_end", {"session_file": session_file})
+                
                 # Clear session state
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
                 st.rerun()
             return
         
-        # Chat input
-        if prompt := st.chat_input(get_translation('message_placeholder', language)):
-            # Add user message
-            st.session_state.messages.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
-                st.markdown(prompt)
-            
-            # Process and get response with timing
-            start_time = time.time()
-            
-            with st.chat_message("assistant"):
-                # Show typing indicator
-                typing_placeholder = st.empty()
-                typing_placeholder.markdown("""
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="color: #4A5568;">🤖 Thinking</span>
-                    <span>●●●</span>
-                </div>
-                """, unsafe_allow_html=True)
-                
+    # Chat input
+    if prompt := st.chat_input(get_translation('message_placeholder', language)):
+        # Add user message
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        # Process and get response with timing
+        start_time = time.time()
+        current_phase = st.session_state.state_manager.get_current_state().value
+
+        with st.chat_message("assistant"):
+            # Show typing indicator
+            typing_placeholder = st.empty()
+            typing_placeholder.markdown("""
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span style="color: #4A5568;">🤖 Thinking</span>
+            <span>●●●</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+            try:
                 # Process input
                 response = st.session_state.phase_controller.process_input(prompt)
-                
+
                 # Clear typing indicator and show response
                 typing_placeholder.empty()
                 st.markdown(response)
-                
+
+                # Calculate response time
+                response_time = (time.time() - start_time) * 1000
+
                 # Analyze sentiment for user's input
+                sentiment_data = None
                 if st.session_state.llm and prompt:
                     try:
                         analyzer = SentimentAnalyzer(st.session_state.llm)
-                        sentiment = analyzer.analyze(prompt)
-                        st.session_state.sentiment_history.append(sentiment)
-                        render_sentiment_badge_realtime(sentiment)
-                    except Exception:
-                        pass
-                
+                        sentiment_data = analyzer.analyze(prompt)
+                        st.session_state.sentiment_history.append(sentiment_data)
+                        render_sentiment_badge_realtime(sentiment_data)
+                    except Exception as e:
+                        st.session_state.logger.log_error(
+                            error_type="SentimentAnalysisError",
+                            error_message=str(e),
+                            context={"input_length": len(prompt)}
+                        )
+
                 # Log usage
-                response_time = (time.time() - start_time) * 1000
+                input_tokens = len(prompt.split())
+                output_tokens = len(response.split())
                 st.session_state.usage_tracker.log_request(
                     provider=st.session_state.llm_provider,
                     model="gpt-4o" if "GPT" in st.session_state.llm_provider else "llama3.2",
-                    input_tokens=len(prompt.split()),
-                    output_tokens=len(response.split()),
-                    phase=current_state.value,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    phase=current_phase,
                     response_time_ms=response_time
                 )
-            
-            st.session_state.messages.append({"role": "assistant", "content": response})
-            st.rerun()
+
+                # Log conversation turn
+                st.session_state.logger.log_conversation_turn(
+                    user_input=prompt,
+                    llm_response=response,
+                    phase=current_phase,
+                    response_time_ms=response_time,
+                    tokens={"input": input_tokens, "output": output_tokens},
+                    sentiment=sentiment_data,
+                    prompt_template=current_phase
+                )
+
+                st.session_state.messages.append({"role": "assistant", "content": response})
+                st.rerun()
+
+            except Exception as e:
+                typing_placeholder.empty()
+                st.error(f"An error occurred: {str(e)}")
+                st.session_state.logger.log_error(
+                    error_type="ProcessingError",
+                    error_message=str(e),
+                    context={"phase": current_phase, "input": prompt[:100]}
+                )
 
 
 if __name__ == "__main__":
