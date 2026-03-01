@@ -1,0 +1,39 @@
+src/
+├── __init__.py
+├── llm/
+│   ├── __init__.py
+│   ├── base.py
+│   ├── gpt4o.py
+│   ├── ollama_llm.py
+│   └── factory.py
+├── prompts/
+│   ├── __init__.py
+│   └── templates.py
+├── components/
+│   ├── __init__.py
+│   ├── state_manager.py
+│   ├── phase_controller.py
+│   ├── fallback_handler.py
+│   └── sentiment_analyzer.py
+├── ui/
+│   ├── __init__.py
+│   └── components.py
+└── app.py
+
+tests/
+├── __init__.py
+├── test_llm_factory.py
+├── test_ollama_llm.py
+├── test_fallback_handler.py
+└── test_state_manager.py
+
+docs/
+├── README.md
+└── ... (existing docs)
+
+.streamlit/
+└── config.toml
+
+requirements.txt
+.env.example
+.gitignore
