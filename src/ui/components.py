@@ -83,7 +83,13 @@ def render_progress(current_phase: str, phases: list, language: str = "en"):
 
 def render_llm_provider_badge(provider: str, is_fallback: bool = False):
     """Render LLM provider indicator badge"""
-    if "GPT" in provider or "openai" in provider.lower():
+    if "Groq" in provider or "groq" in provider.lower():
+        icon = "⚡"
+        bg_color = "#D1FAE5"
+        text_color = "#10B981"
+        border_color = "#6EE7B7"
+        tooltip = "Using Groq (Free & Fast)"
+    elif "GPT" in provider or "openai" in provider.lower():
         icon = "☁️"
         bg_color = "#EBF8FF"
         text_color = "#2B6CB0"
@@ -95,27 +101,27 @@ def render_llm_provider_badge(provider: str, is_fallback: bool = False):
         text_color = "#276749"
         border_color = "#9AE6B4"
         tooltip = "Using Ollama Local Model"
-    
+
     fallback_indicator = " (fallback)" if is_fallback else ""
-    
+
     st.markdown(f"""
-    <div style="
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
-        font-size: 0.85rem;
-        font-weight: 500;
-        background-color: {bg_color};
-        color: {text_color};
-        border: 1px solid {border_color};
-        margin-bottom: 1rem;
-        animation: fadeIn 0.3s ease-out;
-    " title="{tooltip}">
-        {icon} {provider}{fallback_indicator}
-    </div>
-    """, unsafe_allow_html=True)
+<div style="
+display: inline-flex;
+align-items: center;
+gap: 0.5rem;
+padding: 0.25rem 0.75rem;
+border-radius: 9999px;
+font-size: 0.85rem;
+font-weight: 500;
+background-color: {bg_color};
+color: {text_color};
+border: 1px solid {border_color};
+margin-bottom: 1rem;
+animation: fadeIn 0.3s ease-out;
+" title="{tooltip}">
+{icon} {provider}{fallback_indicator}
+</div>
+""", unsafe_allow_html=True)
 
 
 def render_sentiment_badge_realtime(sentiment_data: dict):
@@ -308,31 +314,39 @@ def render_llm_toggle():
     """Render LLM provider toggle in sidebar"""
     st.sidebar.markdown("### ⚙️ Settings")
     st.sidebar.markdown("**LLM Provider**")
-    
-    provider_options = ["Auto-detect", "OpenAI GPT-4o", "Ollama (local)"]
-    
+
+    provider_options = [
+        "Auto-detect",
+        "Groq (Free/Fast)",
+        "OpenAI GPT-4o",
+        "Ollama (local)"
+    ]
+
     selected = st.sidebar.radio(
         "Select LLM Provider",
         provider_options,
         index=0,
-        help="Auto-detect uses OpenAI if API key is valid, otherwise Ollama",
+        help="Auto-detect: Groq (FREE) → OpenAI → Ollama",
         label_visibility="collapsed"
     )
-    
+
     provider_map = {
         "Auto-detect": "auto",
+        "Groq (Free/Fast)": "groq",
         "OpenAI GPT-4o": "openai",
         "Ollama (local)": "ollama"
     }
-    
+
     # Show status info
-    if selected == "Ollama (local)":
+    if selected == "Groq (Free/Fast)":
+        st.sidebar.caption("⚡ Free & Fast - Cloud-based")
+    elif selected == "Ollama (local)":
         st.sidebar.caption("🖥️ Running locally - No API costs")
     elif selected == "OpenAI GPT-4o":
         st.sidebar.caption("☁️ Cloud-based - API costs apply")
     else:
         st.sidebar.caption("🔄 Will auto-detect best option")
-    
+
     return provider_map[selected]
 
 
@@ -409,18 +423,66 @@ def render_question_progress(current: int, total: int):
     """Render question progress"""
     if total == 0:
         return
-    
+
     st.markdown(f"""
-    <div style="
-        background-color: #F7FAFC;
-        border-radius: 8px;
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-        font-size: 0.9rem;
-    ">
-        <strong>Question {current + 1}</strong> of {total}
-    </div>
-    """, unsafe_allow_html=True)
+<div style="
+background-color: #F7FAFC;
+border-radius: 8px;
+padding: 0.75rem;
+margin-bottom: 1rem;
+font-size: 0.9rem;
+">
+<strong>Question {current + 1}</strong> of {total}
+</div>
+""", unsafe_allow_html=True)
+
+
+def render_api_key_input():
+    """Render API key input for cloud deployment"""
+    import os
+    
+    has_groq = bool(os.environ.get("GROQ_API_KEY"))
+    has_openai = bool(os.environ.get("OPENAI_API_KEY"))
+    
+    if has_groq or has_openai:
+        return None
+    
+    st.sidebar.markdown("### 🔑 API Configuration")
+    st.sidebar.warning("No API key configured")
+    
+    provider = st.sidebar.selectbox(
+        "Select Provider",
+        ["Groq (Free)", "OpenAI (Paid)"],
+        key="api_provider_select",
+        label_visibility="collapsed"
+    )
+    
+    if "Groq" in provider:
+        st.sidebar.markdown("**Get free key:** [console.groq.com](https://console.groq.com)")
+        api_key = st.sidebar.text_input(
+            "Groq API Key",
+            type="password",
+            key="groq_key_input",
+            help="Your key is stored in session only"
+        )
+        if api_key:
+            os.environ["GROQ_API_KEY"] = api_key
+            st.sidebar.success("✓ Groq API key set!")
+            return "groq"
+    else:
+        st.sidebar.markdown("**Get key:** [platform.openai.com](https://platform.openai.com)")
+        api_key = st.sidebar.text_input(
+            "OpenAI API Key",
+            type="password",
+            key="openai_key_input",
+            help="Your key is stored in session only"
+        )
+        if api_key:
+            os.environ["OPENAI_API_KEY"] = api_key
+            st.sidebar.success("✓ OpenAI API key set!")
+            return "openai"
+    
+    return None
 
 
 def get_custom_css():

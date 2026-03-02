@@ -20,7 +20,8 @@ from src.ui.components import (
     render_typing_indicator, render_language_selector,
     render_theme_toggle, render_usage_stats,
     render_sentiment_sidebar, render_final_sentiment_report,
-    render_sentiment_badge_realtime, get_custom_css, get_dark_mode_css
+    render_sentiment_badge_realtime, render_api_key_input,
+    get_custom_css, get_dark_mode_css
 )
 from src.i18n import get_translation, SUPPORTED_LANGUAGES
 from src.utils import SessionLogger, LogConfig
@@ -125,40 +126,45 @@ def main():
             st.session_state.logger.log_ui_event("theme_change", {"from": theme, "to": selected_theme})
             st.session_state.theme = selected_theme
             st.rerun()
-        
+
         st.markdown("---")
-        
+
+        # API Key input for cloud deployment
+        render_api_key_input()
+
+        st.markdown("---")
+
         # LLM provider toggle
         preferred_provider = render_llm_toggle()
-        
+
         st.markdown("---")
-        
+
         # Candidate info
         if st.session_state.state_manager.data.candidate_info:
             render_candidate_info_sidebar(
                 st.session_state.state_manager.data.candidate_info.to_dict(),
                 language
             )
-        
+
         st.markdown("---")
-        
+
         # Sentiment sidebar
         render_sentiment_sidebar(st.session_state.sentiment_history, language)
-        
+
         st.markdown("---")
-        
+
         # Usage stats
         render_usage_stats(st.session_state.usage_tracker)
-        
+
         st.markdown("---")
-        
+
         # Stats
         st.markdown(f"### {get_translation('sidebar_stats', language)}")
         st.caption(f"Messages: {len(st.session_state.messages)}")
         if st.session_state.state_manager.data.questions:
             answered = sum(1 for q in st.session_state.state_manager.data.questions if q.candidate_response)
             st.caption(f"Questions: {answered}/{len(st.session_state.state_manager.data.questions)}")
-    
+
     # Main chat area
     if not st.session_state.started:
         # Welcome screen
