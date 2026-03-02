@@ -20,7 +20,8 @@ from src.ui.components import (
     render_typing_indicator, render_language_selector,
     render_theme_toggle, render_usage_stats,
     render_sentiment_sidebar, render_final_sentiment_report,
-    render_sentiment_badge_realtime, get_custom_css, get_dark_mode_css
+    render_sentiment_badge_realtime, render_api_key_input,
+    get_custom_css, get_dark_mode_css
 )
 from src.i18n import get_translation, SUPPORTED_LANGUAGES
 from src.utils import SessionLogger, LogConfig
@@ -126,10 +127,15 @@ def main():
             st.session_state.theme = selected_theme
             st.rerun()
         
-        st.markdown("---")
-        
-        # LLM provider toggle
-        preferred_provider = render_llm_toggle()
+    st.markdown("---")
+
+    # API Key input for cloud deployment
+    render_api_key_input()
+
+    st.markdown("---")
+
+    # LLM provider toggle
+    preferred_provider = render_llm_toggle()
         
         st.markdown("---")
         
